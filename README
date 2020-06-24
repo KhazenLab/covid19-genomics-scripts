@@ -11,3 +11,13 @@ Slack channels:
 - c19-genomics-comparative
 - c19-genomics-correlate_timeseries
 - c19-genomics-network_based_approach
+
+
+Files
+
+- `1-comparative/postprocess_genomics.{ipynb,py}`: by Halim, used before uploading to arcgis.com
+
+
+TODO
+
+- files from Rim and Rasha
