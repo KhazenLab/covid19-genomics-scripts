@@ -1,0 +1,34 @@
+This project was started by Rasha E. Boulos.
+
+Genomics first integrated into our dashboard at https://bioinfo.lau.edu.lb/gkhazen/covid19/
+
+to complement the testing statistics timeseries (ref repo covid19-testing-data)
+
+
+
+## How to use
+
+The pipeline for publishing to the arcgis dashboard are in `1-comparative` and are run as follows:
+
+First, files from Rim:
+
+- l1a_parse_gisaid_fasta.R, l1b_mummer.sh, l1c_stats.R (in this order)
+
+The scripts assume the following files are in the same directory as the code:
+- `Reference/EPI_ISL_402125.fasta`
+- `MainFile/somefile.fasta` (that’s the file i download from gisaid)
+- `orfs_covid19.txt`
+
+
+Second, code from Rasha
+
+- l2a_snpEff.sh
+- l2b_files4dashboard.R
+
+
+Third, postprocessing by Halim:
+
+- `l3b_postprocess_genomics.py`: by Halim, used before uploading to arcgis.com
+  - The jupyter notebook from which this was derived is the l3a file
+
+

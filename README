@@ -1,34 +1,6 @@
-Our genomics work on covid-19. This project was started by Rasha E. Boulos.
+Our genomics work on covid-19.
 
-Genomics first integrated into our dashboard at https://bioinfo.lau.edu.lb/gkhazen/covid19/
-
-to complement the testing statistics timeseries (ref repo covid19-testing-data)
-
-
-
-## How to use
-
-The pipeline for publishing to the arcgis dashboard are in `1-comparative` and are run as follows:
-
-First, files from Rim:
-
-- parse_gisaid_fasta.R, mummer.sh, stats.R (in this order)
-
-The scripts assume the following files are in the same directory as the code:
-- `Reference/EPI_ISL_402125.fasta`
-- `MainFile/somefile.fasta` (that’s the file i download from gisaid)
-- `orfs_covid19.txt`
-
-
-Second, code from Rasha
-
-TODO INSERT HERE
-
-
-Third, postprocessing by Halim:
-
-- `postprocess_genomics.{ipynb,py}`: by Halim, used before uploading to arcgis.com
-
+Check `1-comparative/README.md`
 
 
 ## Slack channels
