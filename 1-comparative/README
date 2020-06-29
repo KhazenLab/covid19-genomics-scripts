@@ -4,6 +4,8 @@ Genomics first integrated into our dashboard at https://bioinfo.lau.edu.lb/gkhaz
 
 to complement the testing statistics timeseries (ref repo covid19-testing-data)
 
+This repo works with the repo `covid19-genomics-data`
+
 
 
 ## How to use
