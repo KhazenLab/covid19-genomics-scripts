@@ -12,7 +12,7 @@ import numpy as np
 import requests
 
 #load chart data
-df_pieChartData=pd.read_csv('/content/averagecounts_per_genekbp_percountry_19062020_EPI_ISL_402125.csv', delimiter=',')
+df_pieChartData=pd.read_csv('/content/averagecounts_per_genekbp_percountry_29062020_EPI_ISL_402125.csv', delimiter=',')
 
 #fix country names
 df_pieChartData=df_pieChartData.replace({"Country":"NewZealand"},"New Zealand")
@@ -22,9 +22,9 @@ df_pieChartData=df_pieChartData.replace({"Country":"Nanchang"},"NanChang")
 df_pieChartData=df_pieChartData.replace({"Country":"DRC"},"Congo")
 df_pieChartData=df_pieChartData.replace({"Country":"Korea"},"South Korea")
 df_pieChartData=df_pieChartData.replace({"Country":"Northern Ireland"},"Ireland")
-df_pieChartData=df_pieChartData.replace({"country":"JAM"},"Jamaica")
-df_pieChartData=df_pieChartData.replace({"country":"SouthAfrica"},"South Africa")
-df_pieChartData=df_pieChartData.replace({"country":"Romania "},"Romania")
+df_pieChartData=df_pieChartData.replace({"Country":"JAM"},"Jamaica")
+df_pieChartData=df_pieChartData.replace({"Country":"SouthAfrica"},"South Africa")
+df_pieChartData=df_pieChartData.replace({"Country":"Romania "},"Romania")
 
 #melt data into format for arc
 df_pieChartData = pd.melt(df_pieChartData,
@@ -35,7 +35,7 @@ df_pieChartData=df_pieChartData.sort_values(by=['Country','gene'])
 df_pieChartData.head()
 
 #load data and fix country names
-df_headMapData=pd.read_csv('/content/counts_per_genekbp_percountry_19062020_EPI_ISL_402125.csv')
+df_headMapData=pd.read_csv('/content/counts_per_genekbp_percountry_29062020_EPI_ISL_402125.csv')
 df_headMapData=df_headMapData.replace({"Country":"NetherlandsL"},"Netherlands")
 df_headMapData=df_headMapData.replace({"Country":"NewZealand"},"New Zealand")
 df_headMapData=df_headMapData.replace({"Country":"Wuhan-Hu-1"},"Wuhan")
@@ -43,34 +43,41 @@ df_headMapData=df_headMapData.replace({"Country":"DRC"},"Congo")
 df_headMapData=df_headMapData.replace({"Country":"Nanchang"},"NanChang")
 df_headMapData=df_headMapData.replace({"Country":"Korea"},"South Korea")
 df_headMapData=df_headMapData.replace({"Country":"Northern Ireland"},"Ireland")
-df_headMapData=df_headMapData.replace({"country":"JAM"},"Jamaica")
-df_headMapData=df_headMapData.replace({"country":"SouthAfrica"},"South Africa")
-df_headMapData=df_headMapData.replace({"country":"Romania "},"Romania")
+df_headMapData=df_headMapData.replace({"Country":"JAM"},"Jamaica")
+df_headMapData=df_headMapData.replace({"Country":"SouthAfrica"},"South Africa")
+df_headMapData=df_headMapData.replace({"Country":"Romania "},"Romania")
 
-#change GISAID Ids (to be done at earlier stage by rasha to have uniform ids)
+#fill na dates with min country date
+countries=df_headMapData["Country"].unique()
+mindate=pd.Series([])
+df_headMapData.Date=pd.to_datetime(df_headMapData.Date)
+for i in range(0,(len(countries))):
+  mindate[i]=df_headMapData[df_headMapData["Country"]==countries[i]].Date.dropna().min()
+  temp=df_headMapData.loc[df_headMapData["Country"]==countries[i],"Date"];
+  df_headMapData.loc[df_headMapData["Country"]==countries[i],"Date"]= temp.fillna((mindate[i]))
+  
+#change GISAID Ids
+df_headMapData=df_headMapData.sort_values(["Country", "Date"], ascending = (True, True)).reset_index(drop=True)
 df_headMapData["ID"]=df_headMapData.index.astype('str')
 
 #metl into fomat
 df_headMapData = pd.melt(df_headMapData,
         id_vars=['Country','ID','Date'],
-        value_vars=df_headMapData.columns[3:])
+        value_vars=['ORF1A','ORF1B','S','ORF3A','E','M','ORF6','ORF7A','ORF7B','ORF8','N','ORF10','other'])
 df_headMapData.rename(columns={'ID':'strain_id',"variable": "gene", "value": "num_mutation"}, inplace=True)
 
-
-countries=df_headMapData["Country"].unique()
-mindate=pd.Series([])
-
-df_headMapData.loc[df_headMapData.Date.str.len() <=4,"Date"]=np.nan
-#fill na dates with min country date
-for i in range(0,(len(countries))):
-  mindate[i]=df_headMapData[df_headMapData["Country"]==countries[i]].Date.dropna().min()
-  temp=df_headMapData.loc[df_headMapData["Country"]==countries[i],"Date"];
-  df_headMapData.loc[df_headMapData["Country"]==countries[i],"Date"]= temp.fillna((mindate[i]))
+df_headMapData["strain_id"]=df_headMapData["strain_id"].str.zfill(df_headMapData["strain_id"].str.len().max())
 
 
-df_CoutryDate=pd.DataFrame({"Country":countries,"minDate":mindate})
 
 #add global option (df_headMapData3) that contains mindate for sample foreach country
+df_CoutryDate=pd.DataFrame({"Country":countries,"minDate":mindate})
+df_CoutryDate=df_CoutryDate.sort_values(["minDate"], ascending = (True)).reset_index(drop=True)
+df_CoutryDate["dateID"]=df_CoutryDate.index.astype('str')
+df_CoutryDate["dateID"]=df_CoutryDate["dateID"].str.zfill(df_CoutryDate["dateID"].str.len().max())
+strains=df_headMapData["strain_id"].unique()
+genes=df_headMapData["gene"].unique()
+
 df_headMapData2=df_headMapData.groupby(["Country",'gene'],sort=False).mean().reset_index()
 df_headMapData2["strain_id"]=df_headMapData2["Country"]
 df_headMapData2["Country"]="Global"
@@ -82,13 +89,13 @@ df_headMapData3= df_headMapData2.merge(df_CoutryDate,
                       )
 
 df_headMapData3.rename(columns={'Country_x':'Country',"minDate": "Date"}, inplace=True)
-
-df_headMapData3=df_headMapData3[["Country","strain_id","Date","gene","num_mutation"]]
+df_headMapData3=df_headMapData3[["Country","strain_id","dateID","Date","gene","num_mutation"]]
+df_headMapData3["strain_id"]=df_headMapData3["dateID"]+"_"+df_headMapData3["strain_id"]
 
 df_headMapData3.head()
 
 #load and fix data country names
-df_secondPieChartData=pd.read_csv('/content/average_consequence_percountry_19062020_EPI_ISL_402125_pergene.csv', delimiter=',')
+df_secondPieChartData=pd.read_csv('/content/average_consequence_percountry_29062020_EPI_ISL_402125_pergene.csv', delimiter=',')
 df_secondPieChartData=df_secondPieChartData.replace({"country":"NewZealand"},"New Zealand")
 df_secondPieChartData=df_secondPieChartData.replace({"country":"NetherlandsL"},"Netherlands")
 df_secondPieChartData=df_secondPieChartData.replace({"country":"Wuhan-Hu-1"},"Wuhan")
@@ -101,7 +108,7 @@ df_secondPieChartData=df_secondPieChartData.replace({"country":"SouthAfrica"},"S
 df_secondPieChartData=df_secondPieChartData.replace({"country":"Romania "},"Romania")
 
 #load and fix data country names
-df_nbsamples=pd.read_csv('/content/number_of_samples_19062020_EPI_ISL_402125.csv')
+df_nbsamples=pd.read_csv('/content/number_of_samples_29062020_EPI_ISL_402125.csv')
 df_nbsamples=df_nbsamples.replace({"Var1":"NewZealand"},"New Zealand")
 df_nbsamples=df_nbsamples.replace({"Var1":"NetherlandsL"},"Netherlands")
 df_nbsamples=df_nbsamples.replace({"Var1":"Wuhan-Hu-1"},"Wuhan")
@@ -119,22 +126,28 @@ df_countries=pd.read_csv('/content/country_metadata.csv')
 
 
 countries= df_secondPieChartData["country"].unique();
-#countries= df_secondPieChartData["country"].unique();
 df_countries["Country"].shape
 
 idx1 = pd.Index(df_countries["Country"])
 idx2 = pd.Index(pd.Series(countries))
 
+diff1=idx2.difference(idx1).values;
+diff2=idx1.difference(idx2).values
 display(idx2.difference(idx1).values)
 display(idx1.difference(idx2).values)
 
+if(diff1.len()>0)
+    raise Exception("new Countries added "+ diff1)
+    
+    
+if(diff2.len()>0)
+    raise Exception("new Countries added "+ diff2)
+
 #concat and save heatmap data
 df_finalConcat = pd.concat([df_headMapData,df_headMapData3],ignore_index=True)
-
-df_finalConcat["Date_Sample"]=df_finalConcat["Date"]+"_"+df_finalConcat["strain_id"]
-df_finalConcat["strain_id"]=df_finalConcat["Date_Sample"]
-
 df_finalConcat=df_finalConcat[["Country","strain_id","Date","gene","num_mutation"]]
+df_finalConcat.strain_id="id_"+df_finalConcat.strain_id
+df_finalConcat.strain_id=df_finalConcat.strain_id.astype(str)
 df_finalConcat.to_csv("genomics_counts_geneperkbp_heatMap.csv",index=False)
 
 #save piechart1 data
